@@ -7,14 +7,19 @@ namespace GrammarDemo
     {
         static void Main(string[] args)
         {
-            string code = "a b = 1 + 4 + 6 + 7;";
+            string code;
+            using (StreamReader sr = new StreamReader(File.OpenRead(".\\code.da")))
+            {
+                code = sr.ReadToEnd();
+            }
+            
             Lexer lexer = new Lexer();
             List<Token> tokens = lexer.Scan(code).ToList();
             tokens.RemoveAll(_ => string.IsNullOrWhiteSpace(_.RawToken));
             Parser parser = new Parser(tokens);
             ExpressionNode expressionNode = parser.Parse();
             Executor executor = new Executor();
-            executor.Print((expressionNode as StatementsNode).Lines[0]);
+            executor.Print(expressionNode);
         }
     }
 }

@@ -59,6 +59,7 @@ namespace GrammarDemo.Src
             {
                 return expressionNode;
             }
+            _position--;
             if (TryParseExpression(out expressionNode))
             {
                 return expressionNode;
@@ -69,15 +70,15 @@ namespace GrammarDemo.Src
 
         private bool TryParseExpression(out ExpressionNode? expressionNode)
         {
-            expressionNode = null;
+                expressionNode = null;
             if (Match(out Token? idToken, TokenType.Identifier))
             {
                 if (Match(out Token assignmentOp, TokenType.Assignment))
                 {
+                    TryParseFormula(out ExpressionNode? rightNode);
+                    ExpressionNode LeftNode = new IdentifierNode(idToken);
                     if (Match(out _, TokenType.Semicolon))
                     {
-                        TryParseFormula(out ExpressionNode? rightNode);
-                        ExpressionNode LeftNode = new IdentifierNode(idToken);
                         expressionNode = new BinaryOperationNode(assignmentOp, LeftNode, rightNode);
                         return true;
                     }
