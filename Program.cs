@@ -7,7 +7,7 @@ namespace GrammarDemo
     {
         static void Main(string[] args)
         {
-            string code = "std::complex<double> nigga;";
+            string code = "a b = 1 + 4 + 6 + 7;";
             Lexer lexer = new Lexer();
             List<Token> tokens = lexer.Scan(code).ToList();
             tokens.RemoveAll(_ => string.IsNullOrWhiteSpace(_.RawToken));

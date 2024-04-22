@@ -59,7 +59,7 @@ namespace GrammarDemo.Src
             {
                 return expressionNode;
             }
-            if (TryParseStatement(out expressionNode))
+            if (TryParseExpression(out expressionNode))
             {
                 return expressionNode;
             }
@@ -67,17 +67,20 @@ namespace GrammarDemo.Src
             throw new Exception("cant parse");
         }
 
-        private bool TryParseStatement(out ExpressionNode? expressionNode)
+        private bool TryParseExpression(out ExpressionNode? expressionNode)
         {
             expressionNode = null;
             if (Match(out Token? idToken, TokenType.Identifier))
             {
                 if (Match(out Token assignmentOp, TokenType.Assignment))
                 {
-                    TryParseFormula(out ExpressionNode? rightNode);
-                    ExpressionNode LeftNode = new IdentifierNode(idToken);
-                    expressionNode = new BinaryOperationNode(assignmentOp, LeftNode, rightNode);
-                    return true;
+                    if (Match(out _, TokenType.Semicolon))
+                    {
+                        TryParseFormula(out ExpressionNode? rightNode);
+                        ExpressionNode LeftNode = new IdentifierNode(idToken);
+                        expressionNode = new BinaryOperationNode(assignmentOp, LeftNode, rightNode);
+                        return true;
+                    }
                 }
             }
 
@@ -104,11 +107,11 @@ namespace GrammarDemo.Src
         private bool TryParseParenthesis(out ExpressionNode? expressionNode)
         {
             expressionNode = null;
-            if (Match(out Token openPar, TokenType.OpenParenthesis))
+            if (Match(out _, TokenType.OpenParenthesis))
             {
                 if (TryParseFormula(out ExpressionNode? innerFormula))
                 {
-                    if (Requre(out _, TokenType.CloseParenthesis))
+                    if (Match(out _, TokenType.CloseParenthesis))
                     {
                         expressionNode = innerFormula;
                         return true;
@@ -129,22 +132,15 @@ namespace GrammarDemo.Src
 
         private bool TryParseFormula(out ExpressionNode? expressionNode)
         {
-            expressionNode = null;
             TryParseParenthesis(out ExpressionNode? leftNode);
-            if (Match(out Token? op, TokenType.Plus, TokenType.Minus))
+            while(Match(out Token? op, TokenType.Plus, TokenType.Minus))
             {
-                while (op is not null)
-                {
-                    TryParseParenthesis(out ExpressionNode? rightNode);
-                    leftNode = new BinaryOperationNode(op, leftNode, rightNode);
-                    Match(out op, TokenType.Plus, TokenType.Minus);
-                }
-
-                expressionNode = leftNode;
-                return true;
+                TryParseParenthesis(out ExpressionNode? rightNode);
+                leftNode = new BinaryOperationNode(op, leftNode, rightNode);
             }
 
-            return false;
+            expressionNode = leftNode;
+            return true;
         }
 
         private bool TryParseDeclaration(out ExpressionNode? expressionNode)
@@ -162,9 +158,12 @@ namespace GrammarDemo.Src
                     else if (Match(out Token assignmentOp, TokenType.Assignment))
                     {
                         TryParseFormula(out ExpressionNode? rightNode);
-                        ExpressionNode LeftNode = new DeclarationNode(typeToken, IdToken);
-                        expressionNode = new BinaryOperationNode(assignmentOp, LeftNode, rightNode);
-                        return true;
+                        if (Match(out _, TokenType.Semicolon))
+                        {
+                            ExpressionNode LeftNode = new DeclarationNode(typeToken, IdToken);
+                            expressionNode = new BinaryOperationNode(assignmentOp, LeftNode, rightNode);
+                            return true;
+                        }
                     }
                 }
             }
